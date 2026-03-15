@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#4CAF50">
+    <title>Workout Tracker</title>
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiV29ya291dCBUcmFja2VyIC0gVG9ueSIsInNob3J0X25hbWUiOiJXb3Jrb3V0IiwiZGVzY3JpcHRpb24iOiJBcHBsaWNhdGlvbiBkZSBzdWl2aSBkJ2VudHJhw65uZW1lbnQgcGVyc29ubmFsaXPDqWUiLCJzdGFydF91cmwiOiIvIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzBhMGEwYSIsInRoZW1lX2NvbG9yIjoiIzRDQUY1MCIsIm9yaWVudGF0aW9uIjoicG9ydHJhaXQiLCJpY29ucyI6W3sic3JjIjoiZGF0YTppbWFnZS9zdmcreG1sLCUzQ3N2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA1MTIgNTEyJyUzRSUzQ3JlY3QgZmlsbD0nJTIzNENBRjUwJyB3aWR0aD0nNTEyJyBoZWlnaHQ9JzUxMicvJTNFJTNDdGV4dCB4PSc1MCUyNScgeT0nNTAlMjUnIGRvbWluYW50LWJhc2VsaW5lPSdtaWRkbGUnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZvbnQtc2l6ZT0nMjgwJyBmaWxsPSd3aGl0ZSclM0UlRjAlOUYlOTIlQUElM0MvdGV4dCUzRSUzQy9zdmclM0UiLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCIsInB1cnBvc2UiOiJhbnkgbWFza2FibGUifV19">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect fill='%234CAF50' width='512' height='512'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='280' fill='white'%3E💪%3C/text%3E%3C/svg%3E">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; }
+
+        .header { background: #1a1a1a; padding: 18px 20px 14px; border-bottom: 1px solid #2a2a2a; position: sticky; top: 0; z-index: 100; }
+        .header h1 { font-size: 22px; font-weight: 700; }
+        .header-sub { color: #666; font-size: 13px; margin-top: 2px; }
+        .week-selector { display: flex; gap: 8px; margin-top: 14px; }
+        .week-btn { flex: 1; padding: 9px; background: #1e1e1e; border: 1px solid #333; color: #888; border-radius: 8px; cursor: pointer; font-size: 13px; }
+        .week-btn.active { background: #2a2a2a; border-color: #555; color: #e0e0e0; font-weight: 600; }
+
+        .stats { display: flex; gap: 10px; margin-top: 14px; }
+        .stat-item { flex: 1; background: #1e1e1e; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #2a2a2a; }
+        .stat-value { font-size: 22px; font-weight: 700; }
+        .stat-label { color: #666; font-size: 11px; margin-top: 2px; }
+
+        .container { padding: 16px; max-width: 600px; margin: 0 auto; }
+
+        /* SESSION CARD */
+        .session-card { background: #141414; border-radius: 14px; margin-bottom: 12px; border: 1px solid #252525; overflow: hidden; }
+        .session-card.done-card { border-color: #1e2e1e; }
+
+        .session-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; cursor: pointer; }
+        .session-header-left { display: flex; align-items: center; gap: 12px; flex: 1; }
+        .session-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+        .session-icon.type-a { background: #1a2a3a; }
+        .session-icon.type-b { background: #2a1a3a; }
+        .session-icon.type-cardio { background: #1a2a1a; }
+        .session-icon.type-done { background: #1e2e1e; }
+
+        .session-info .session-title { font-size: 16px; font-weight: 700; }
+        .session-info .session-meta { color: #666; font-size: 12px; margin-top: 2px; }
+        .session-info .session-done-summary { color: #4CAF50; font-size: 12px; margin-top: 2px; }
+
+        .session-header-right { display: flex; align-items: center; gap: 10px; }
+        .session-check { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #333; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; flex-shrink: 0; }
+        .session-check.done { background: #2d5a2d; border-color: #4CAF50; }
+        .toggle-arrow { color: #555; font-size: 14px; transition: transform 0.2s; }
+        .toggle-arrow.open { transform: rotate(180deg); }
+
+        .session-body { padding: 0 18px 18px; border-top: 1px solid #1e1e1e; }
+        .session-body.collapsed { display: none; }
+        .cardio-session-body.collapsed { display: none; }
+
+        .block-label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 0.8px; margin: 14px 0 8px; }
+        .warmup-block { background: #1a1a1a; border-radius: 8px; padding: 12px; border-left: 3px solid #333; }
+        .warmup-block div { font-size: 13px; color: #aaa; margin: 4px 0; }
+
+        .exercise-item { background: #1e1e1e; border-radius: 10px; padding: 14px; margin-bottom: 8px; cursor: pointer; border: 1px solid #2a2a2a; display: flex; justify-content: space-between; align-items: center; }
+        .exercise-item.done { border-left: 3px solid #4CAF50; }
+        .exercise-name { font-weight: 600; font-size: 15px; margin-bottom: 3px; }
+        .exercise-meta { color: #666; font-size: 12px; }
+        .exercise-logged { font-size: 12px; color: #4CAF50; margin-top: 4px; }
+        .ex-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #333; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .ex-check.done { background: #2d5a2d; border-color: #4CAF50; }
+
+        /* CARDIO SESSION */
+        .cardio-session-body { padding: 16px 18px 18px; border-top: 1px solid #1e1e1e; }
+        .cardio-detail { background: #1e1e1e; border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+        .cardio-detail .cd-title { font-weight: 600; font-size: 15px; margin-bottom: 8px; }
+        .cardio-detail .cd-line { font-size: 13px; color: #aaa; margin: 4px 0; }
+        .cardio-log { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .cardio-field label { display: block; font-size: 11px; color: #666; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .cardio-field input { width: 100%; padding: 11px; background: #0a0a0a; border: 1px solid #333; border-radius: 8px; color: #e0e0e0; font-size: 15px; }
+        .cardio-field input:focus { outline: none; border-color: #555; }
+        .cardio-validate-btn { width: 100%; padding: 14px; background: #2d5a2d; border: none; border-radius: 10px; color: #4CAF50; font-size: 15px; font-weight: 700; cursor: pointer; }
+
+        /* MODAL */
+        .modal { display: none; position: fixed; inset: 0; background: #0a0a0a; z-index: 1000; overflow-y: auto; }
+        .modal.active { display: block; }
+        .modal-header { background: #141414; padding: 18px 20px; border-bottom: 1px solid #222; position: sticky; top: 0; z-index: 10; }
+        .close-btn { background: none; border: none; color: #888; font-size: 22px; cursor: pointer; margin-bottom: 8px; display: block; }
+        .modal-title { font-size: 20px; font-weight: 700; }
+        .modal-target { color: #666; font-size: 13px; margin-top: 4px; }
+        .modal-body { padding: 20px; padding-bottom: 100px; }
+
+        /* GIF / IMAGE */
+        .media-container { width: 100%; border-radius: 12px; overflow: hidden; background: #141414; margin-bottom: 12px; position: relative; }
+        .media-container img { width: 100%; display: block; min-height: 160px; object-fit: cover; }
+        .media-badge { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: #aaa; font-size: 10px; padding: 3px 7px; border-radius: 20px; }
+        .media-fallback { display: none; }
+        .media-placeholder { background: #1a1a1a; border-radius: 12px; padding: 30px 20px; text-align: center; margin-bottom: 12px; }
+        .media-placeholder .ph-icon { font-size: 48px; margin-bottom: 8px; }
+        .media-placeholder p { color: #666; font-size: 13px; }
+
+        .yt-btn { display: flex; align-items: center; gap: 8px; padding: 11px 16px; background: #1e1e1e; color: #e0e0e0; text-decoration: none; border-radius: 8px; font-size: 14px; border: 1px solid #333; margin-bottom: 20px; }
+
+        .section-title { font-size: 15px; font-weight: 700; margin: 20px 0 10px; }
+        .instruction-list { background: #1a1a1a; border-radius: 10px; padding: 14px 14px 14px 30px; }
+        .instruction-list li { margin: 8px 0; color: #ccc; line-height: 1.5; font-size: 14px; }
+        .tip-box { background: #1a1a1a; border-radius: 10px; padding: 14px; border-left: 3px solid #555; margin-top: 12px; }
+        .tip-box p { color: #bbb; font-size: 14px; line-height: 1.5; }
+
+        .timer-box { background: #1a1a1a; border-radius: 12px; padding: 20px; text-align: center; margin: 20px 0; border: 1px solid #2a2a2a; }
+        .timer-label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+        .timer-display { font-size: 56px; font-weight: 700; font-variant-numeric: tabular-nums; margin: 8px 0 16px; }
+        .timer-display.warning { color: #ff6b6b; }
+        .timer-display.done-t { color: #4CAF50; }
+        .timer-btns { display: flex; gap: 10px; }
+        .timer-btn { flex: 1; padding: 13px; background: #252525; border: 1px solid #333; color: #e0e0e0; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
+        .timer-btn.go { background: #2d5a2d; border-color: #4CAF50; }
+
+        .tracking-box { background: #1a1a1a; border-radius: 12px; padding: 18px; margin: 20px 0; }
+        .prev-data { background: #252525; border-radius: 8px; padding: 12px; margin-bottom: 16px; }
+        .prev-label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .prev-values { display: flex; gap: 8px; flex-wrap: wrap; }
+        .prev-chip { background: #1e1e1e; padding: 5px 10px; border-radius: 20px; font-size: 13px; color: #aaa; }
+        .prev-chip.suggest { border: 1px solid #4CAF50; color: #4CAF50; }
+        .prev-values.recommendation { margin-top: 10px; }
+
+        .field { margin-bottom: 16px; }
+        .field label { display: block; font-size: 12px; color: #666; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .field input { width: 100%; padding: 13px; background: #0a0a0a; border: 1px solid #333; border-radius: 8px; color: #e0e0e0; font-size: 16px; }
+        .field input:focus { outline: none; border-color: #555; }
+
+        .feeling-row { display: flex; gap: 8px; }
+        .feeling-btn { flex: 1; padding: 11px 6px; background: #0a0a0a; border: 1px solid #333; border-radius: 8px; cursor: pointer; font-size: 13px; color: #aaa; text-align: center; }
+        .feeling-btn.sel { background: #252525; border-color: #666; color: #e0e0e0; }
+        .validate-btn { width: 100%; padding: 16px; background: #2d5a2d; border: none; border-radius: 10px; color: #4CAF50; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-left: 8px; background: #2d4a1e; color: #7bc47b; }
+        .ref-label { font-size: 10px; color: #444; text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 0 4px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Mon Plan Sport <span class="badge">v3</span></h1>
+    <div class="header-sub">Adapté à ton niveau réel 💪</div>
+    <div class="week-selector">
+        <button class="week-btn active" data-week="1">S1</button>
+        <button class="week-btn" data-week="2">S2</button>
+        <button class="week-btn" data-week="3">S3</button>
+        <button class="week-btn" data-week="4">S4</button>
+        <button class="week-btn" data-week="5">S5</button>
+    </div>
+    <div class="stats">
+        <div class="stat-item"><div class="stat-value" id="statSessions">0/3</div><div class="stat-label">Séances</div></div>
+        <div class="stat-item"><div class="stat-value" id="statStreak">0</div><div class="stat-label">Streak 🔥</div></div>
+        <div class="stat-item"><div class="stat-value" id="statExos">0</div><div class="stat-label">Exos validés</div></div>
+    </div>
+</div>
+
+<div class="container" id="mainContainer"></div>
+
+<div id="modal" class="modal">
+    <div class="modal-header">
+        <button class="close-btn" onclick="closeModal()">✕ Retour</button>
+        <div class="modal-title" id="modalTitle"></div>
+        <div class="modal-target" id="modalTarget"></div>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+</div>
+
+<script>
+// ─── GOOGLE SHEETS SYNC ───────────────────────────────────────────────────────
+const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbzusgbHj4k-aJ4xOHwdWTja5bFXaKGX7YwlMKil1B2tNF3FgTbSQgVANpV4N_-FFxiW/exec';
+const SYNC_ENABLED = true;
+
+async function syncToSheets(sessionId, exerciseId, data) {
+    if (!SYNC_ENABLED || !navigator.onLine) {
+        console.log('Sync skipped: offline or disabled');
+        return;
+    }
+    
+    const week = sessionId.match(/w(\d+)/)[1];
+    const sessionType = sessionId.match(/s([ABC])/)[1];
+    
+    try {
+        const response = await fetch(SHEETS_API_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                timestamp: new Date().toISOString(),
+                week: `S${week}`,
+                session: `Séance ${sessionType}`,
+                exercise: EXERCISES[exerciseId]?.name || exerciseId,
+                weight: data.weight,
+                reps: data.reps,
+                sets: data.sets,
+                feeling: data.feeling,
+                notes: ''
+            })
+        });
+        console.log('✓ Synced to Google Sheets:', exerciseId);
+    } catch (err) {
+        console.error('✗ Sheets sync failed:', err);
+    }
+}
+
+async function syncCardioToSheets(sessionId, cardioData) {
+    if (!SYNC_ENABLED || !navigator.onLine) return;
+    
+    const week = sessionId.match(/w(\d+)/)[1];
+    const sessionType = sessionId.match(/s([ABC])/)[1];
+    
+    try {
+        await fetch(SHEETS_API_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                timestamp: new Date().toISOString(),
+                week: `S${week}`,
+                session: `Séance ${sessionType} (Cardio)`,
+                exercise: 'Cardio',
+                weight: '',
+                reps: '',
+                sets: '',
+                feeling: '',
+                notes: `${cardioData.duration}min • Niv.${cardioData.level} • ${cardioData.kcal}kcal • ${cardioData.distance}km`
+            })
+        });
+        console.log('✓ Synced cardio to Google Sheets');
+    } catch (err) {
+        console.error('✗ Cardio sync failed:', err);
+    }
+}
+
+// ─── MEDIA: gif + image fallback ──────────────────────────────────────────────
+const MEDIA = {
+    latpulldown: {
+        gif: "https://fitnessprogramer.com/wp-content/uploads/2021/02/Lat-Pulldown.gif",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Lat_pulldown_2.jpg/320px-Lat_pulldown_2.jpg",
+        type: "gif"
+    },
+    lowrow: {
+        gif: "https://fitnessprogramer.com/wp-content/uploads/2021/02/Seated-Cable-Row.gif",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Seated_row.jpg/320px-Seated_row.jpg",
+        type: "gif"
+    },
+    legpress: {
+        gif: "https://fitnessprogramer.com/wp-content/uploads/2021/02/Leg-Press.gif",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Leg_press.jpg/320px-Leg_press.jpg",
+        type: "gif"
+    },
+    pectoral: {
+        gif: "https://fitnessprogramer.com/wp-content/uploads/2021/04/Pec-Deck-Fly.gif",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Pec_Deck.jpg/320px-Pec_Deck.jpg",
+        type: "gif"
+    },
+    facepull: {
+        gif: "https://fitnessprogramer.com/wp-content/uploads/2021/02/Face-Pull.gif",
+        img: "https://static.strengthlevel.com/images/exercises/face-pull/face-pull-400.jpg",
+        type: "gif"
+    },
+    rdl: {
+        gif: "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Romanian-Deadlift.gif",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Romanian_deadlift.jpg/320px-Romanian_deadlift.jpg",
+        type: "gif"
+    },
+    plank: {
+        gif: "https://fitnessprogramer.com/wp-content/uploads/2022/03/forearm-plank.gif",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Plank_exercise.jpg/320px-Plank_exercise.jpg",
+        type: "gif"
+    },
+    birddog: {
+        gif: "https://fitnessprogramer.com/wp-content/uploads/2021/02/Bird-Dog.gif",
+        img: "https://static.strengthlevel.com/images/exercises/bird-dog/bird-dog-400.jpg",
+        type: "gif"
+    },
+    sideplank: {
+        gif: "https://fitnessprogramer.com/wp-content/uploads/2021/02/Side-Plank.gif",
+        img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Side_plank.jpg/320px-Side_plank.jpg",
+        type: "gif"
+    },
+    deadbug: {
+        gif: "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dead-Bug.gif",
+        img: "https://static.strengthlevel.com/images/exercises/dead-bug/dead-bug-400.jpg",
+        type: "gif"
+    },
+    armcurl: {
+        gif: "https://fitnessprogramer.com/wp-content/uploads/2021/06/Arm-Curl-Machine.gif",
+        img: "https://static.strengthlevel.com/images/exercises/machine-bicep-curl/machine-bicep-curl-400.jpg",
+        type: "gif"
+    },
+    armextension: {
+        gif: "https://fitnessprogramer.com/wp-content/uploads/2021/02/Triceps-Extension-Machine.gif",
+        img: "https://static.strengthlevel.com/images/exercises/tricep-extension-machine/tricep-extension-machine-400.jpg",
+        type: "gif"
+    },
+    upperback: {
+        gif: "https://fitnessprogramer.com/wp-content/uploads/2021/02/Seated-Cable-Row.gif",
+        img: "https://static.strengthlevel.com/images/exercises/seated-cable-row/seated-cable-row-400.jpg",
+        type: "gif"
+    },
+    abcrunch: {
+        gif: "https://fitnessprogramer.com/wp-content/uploads/2021/04/Machine-Crunch.gif",
+        img: "https://static.strengthlevel.com/images/exercises/machine-crunch/machine-crunch-400.jpg",
+        type: "gif"
+    },
+    adductor: {
+        gif: "https://fitnessprogramer.com/wp-content/uploads/2021/02/Hip-Adduction-Machine.gif",
+        img: "https://static.strengthlevel.com/images/exercises/hip-adduction-machine/hip-adduction-machine-400.jpg",
+        type: "gif"
+    },
+    chestpress: {
+        gif: "https://fitnessprogramer.com/wp-content/uploads/2021/02/Cable-Standing-Chest-Press.gif",
+        img: "https://static.strengthlevel.com/images/exercises/cable-chest-press/cable-chest-press-400.jpg",
+        type: "gif"
+    },
+    highrow: {
+        gif: "https://fitnessprogramer.com/wp-content/uploads/2021/02/Cable-High-Row.gif",
+        img: "https://static.strengthlevel.com/images/exercises/cable-high-row/cable-high-row-400.jpg",
+        type: "gif"
+    },
+    shoulderpress: {
+        gif: "https://fitnessprogramer.com/wp-content/uploads/2021/02/Cable-Shoulder-Press.gif",
+        img: "https://static.strengthlevel.com/images/exercises/cable-shoulder-press/cable-shoulder-press-400.jpg",
+        type: "gif"
+    },
+    trunkrotation: {
+        gif: "https://fitnessprogramer.com/wp-content/uploads/2021/02/Cable-Wood-Chop.gif",
+        img: "https://static.strengthlevel.com/images/exercises/cable-wood-chop/cable-wood-chop-400.jpg",
+        type: "gif"
+    }
+};
+
+const EXERCISES = {
+    latpulldown: {
+        name: "Vertical Traction (Lat Pulldown)",
+        target: "12 reps × 3 tours • Repos 90s",
+        muscle: "Grand dorsal, biceps",
+        video: "https://www.youtube.com/watch?v=CAwf7n6Luuc",
+        hasWeight: true, hasTimer: false,
+        instructions: [
+            "Assieds-toi, attrape la barre en pronation, mains légèrement plus larges que les épaules",
+            "Abaisse les épaules — ne les laisse pas monter vers les oreilles",
+            "Tire la barre vers le haut de ta poitrine, buste légèrement incliné",
+            "Serre les omoplates au point bas du mouvement",
+            "Remonte lentement et de façon contrôlée (3 secondes)"
+        ],
+        tip: "S1: 30kg×15 • S2: 30kg×12×4 tours. S3: teste 32.5-35kg × 12 reps × 3 tours. Si 30kg devient facile en fin de série → augmente."
+    },
+    lowrow: {
+        name: "Low Row (Tirage horizontal)",
+        target: "12 reps × 3 tours • Repos 90s",
+        muscle: "Dos, trapèzes, rhomboïdes",
+        video: "https://www.youtube.com/watch?v=UCXxvVItLoM",
+        hasWeight: true, hasTimer: false,
+        instructions: [
+            "Assieds-toi, pieds bien calés, dos droit",
+            "Saisis les poignées, bras tendus",
+            "Tire vers ton abdomen, coudes près du corps",
+            "Serre les omoplates fort en fin de mouvement",
+            "Retour contrôlé sans arrondir le dos"
+        ],
+        tip: "S1: 30kg×15 • S2: 35kg×15×3. S3: consolide 35kg × 12 reps × 3 tours, ou teste 37.5kg si tu sens bien."
+    },
+    legpress: {
+        name: "Leg Press",
+        target: "15 reps × 3 tours • Repos 90s",
+        muscle: "Quadriceps, fessiers, ischios",
+        video: "https://www.youtube.com/watch?v=IZxyjW7MPJQ",
+        hasWeight: true, hasTimer: false,
+        instructions: [
+            "Place les pieds largeur hanches sur la plateforme",
+            "Déverrouille les sécurités",
+            "Descends de façon contrôlée jusqu'à 90° aux genoux",
+            "Pousse avec les talons pour remonter",
+            "Ne verrouille pas complètement les genoux en haut"
+        ],
+        tip: "S1: 30kg×20 • S2: 60kg×15×4. S3: vise 65-70kg × 15 reps × 3 tours. T'avais clairement sous-estimé ta force jambes."
+    },
+    pectoral: {
+        name: "Pectoral machine",
+        target: "12 reps × 3 tours • Repos 90s",
+        muscle: "Pectoraux, deltoïdes antérieurs",
+        video: "https://www.youtube.com/watch?v=Z57CtFmRMxA",
+        hasWeight: true, hasTimer: false,
+        instructions: [
+            "Règle le siège pour que les poignées soient au niveau des épaules",
+            "Dos bien plaqué contre le dossier tout au long",
+            "Ferme les bras simultanément en contrôlant",
+            "Les avant-bras restent contre les rembourrages",
+            "Retour lent — ne laisse pas la charge tirer brusquement"
+        ],
+        tip: "S1: 25kg×12×3 • S2: 25kg×12×4. S3: teste 27.5kg × 12 reps × 3 tours. Si facile en fin → 30kg."
+    },
+    facepull: {
+        name: "Face Pull à la poulie",
+        target: "15 reps × 3 tours • Repos 60s",
+        muscle: "Deltoïdes postérieurs, trapèzes, coiffe",
+        video: "https://www.youtube.com/watch?v=rep-qVOkqgk",
+        hasWeight: true, hasTimer: false,
+        instructions: [
+            "Règle la poulie à hauteur du visage",
+            "Attrape la corde avec les deux mains",
+            "Recule d'un pas, bras tendus",
+            "Tire vers ton visage en écartant les mains — coudes hauts",
+            "Serre les omoplates en fin de mouvement, tiens 1 sec"
+        ],
+        tip: "Exercice clé pour ta posture et tes douleurs dos. Charge légère (5-10 kg), qualité absolue. 15 reps très lentes."
+    },
+    rdl: {
+        name: "Soulevé de terre roumain (RDL)",
+        target: "10 reps × 3 tours • Repos 90s",
+        muscle: "Ischios, fessiers, lombaires",
+        video: "https://www.youtube.com/watch?v=2SHsk9AzdjA",
+        hasWeight: true, hasTimer: false,
+        instructions: [
+            "Debout, pieds largeur hanches, haltères devant les cuisses",
+            "Garde le dos PLAT pendant tout le mouvement",
+            "Pousse les fesses vers l'arrière en descendant les haltères le long des jambes",
+            "Descends jusqu'à sentir l'étirement des ischios (pas plus bas)",
+            "Remonte en contractant fessiers et ischios"
+        ],
+        tip: "S1: 25kg barre (trop lourd×20) • S2: 20kg barre×12 (barre libre). S3: reste 20kg barre × 12-15 reps, dos PLAT prioritaire."
+    },
+    plank: {
+        name: "Gainage planche",
+        target: "45-60 sec × 3 tours",
+        muscle: "Core, transverse, lombaires",
+        video: "https://www.youtube.com/watch?v=ASdvN_XEl_c",
+        hasWeight: false, hasTimer: true, timerDuration: 45,
+        instructions: [
+            "Avant-bras au sol, coudes sous les épaules",
+            "Corps aligné de la tête aux talons — pas de cambrure",
+            "Serre le ventre ET les fessiers en même temps",
+            "Respire lentement — expire sur 4 secondes",
+            "Si ça tremble fort : genou posé plutôt qu'arrondir le dos"
+        ],
+        tip: "S1: 60sec×3 • S2: 60sec×2 (dur). S3: vise 60 sec × 3 tours. Si trop dur → 45 sec × 3 impeccables."
+    },
+    birddog: {
+        name: "Bird-dog",
+        target: "15 reps par côté × 3 tours",
+        muscle: "Stabilisateurs lombaires, fessiers, core",
+        video: "https://www.youtube.com/watch?v=wiFNA3sqjCA",
+        hasWeight: false, hasTimer: false,
+        instructions: [
+            "À quatre pattes, mains sous les épaules, genoux sous les hanches",
+            "Tends simultanément le bras droit et la jambe gauche",
+            "Garde le dos parfaitement horizontal — pas de rotation du bassin",
+            "Tiens 2 secondes en extension, reviens et change de côté",
+            "Mouvement lent et contrôlé — qualité > vitesse"
+        ],
+        tip: "S1: 20reps×3 • S2: 20reps×2. S3: 15-20 reps × 3 tours, tenue 2 sec à chaque extension. Qualité > vitesse."
+    },
+    sideplank: {
+        name: "Gainage latéral",
+        target: "30 sec par côté × 3 tours",
+        muscle: "Obliques, carré des lombes",
+        video: "https://www.youtube.com/watch?v=K2VljzCC16g",
+        hasWeight: false, hasTimer: true, timerDuration: 30,
+        instructions: [
+            "Allonge-toi sur le côté, avant-bras perpendiculaire au corps",
+            "Soulève le bassin — corps en ligne droite tête-pieds",
+            "Le coude doit être directement sous l'épaule",
+            "Respire calmement pendant la tenue",
+            "Si trop difficile : pose le genou du bas"
+        ],
+        tip: "S1: 30sec×3/côté • S2: 40sec×3/côté. S3: vise 45 sec × 3 tours/côté. Corps aligné tête-pieds."
+    },
+    deadbug: {
+        name: "Dead bug",
+        target: "12 reps par côté × 3 tours",
+        muscle: "Transverse, core profond",
+        video: "https://www.youtube.com/watch?v=4XLEnwUr1d8",
+        hasWeight: false, hasTimer: false,
+        instructions: [
+            "Allonge-toi sur le dos, bras tendus vers le plafond",
+            "Jambes pliées à 90°, tibias parallèles au sol",
+            "COLLE le bas du dos au sol — c'est la clé de l'exercice",
+            "Descends bras droit + jambe gauche en même temps, lentement",
+            "Remonte et change de côté sans décoller le dos"
+        ],
+        tip: "Si ton dos se décolle du sol → tu vas trop loin. Amplitude réduite mais dos collé = parfait."
+    },
+    armcurl: {
+        name: "Arm Curl machine",
+        target: "10 reps × 3 tours • Repos 60s",
+        muscle: "Biceps brachial, brachial antérieur",
+        video: "https://www.youtube.com/watch?v=ykJmrZ5v0Oo",
+        hasWeight: true, hasTimer: false,
+        instructions: [
+            "Règle le siège pour que les coudes soient au niveau de l'axe de rotation",
+            "Dos bien calé contre le dossier, ne te penche pas en avant",
+            "Attrape les poignées, bras allongés au départ",
+            "Fléchis les bras de façon contrôlée jusqu'en haut",
+            "Retour LENT en 3 secondes — c'est la phase la plus efficace"
+        ],
+        tip: "S1: 20kg×10×3 (difficile) • S2: 20kg×10×3 (difficile). S3: reste 20kg mais vise 12 reps × 3 tours propres."
+    },
+    armextension: {
+        name: "Arm Extension machine",
+        target: "20 reps × 4 tours • Repos 60s",
+        muscle: "Triceps brachial (chef long, latéral, médial)",
+        video: "https://www.youtube.com/watch?v=YbhTJfHSC5k",
+        hasWeight: true, hasTimer: false,
+        instructions: [
+            "Assieds-toi, dos bien calé contre le dossier",
+            "Saisis les poignées en prise neutre (paumes face à face)",
+            "Coudes au niveau de l'axe de rotation de la machine",
+            "Pousse vers le bas en contractant les triceps jusqu'à extension complète",
+            "Retour contrôlé en 3 secondes — ne laisse pas les poids claquer"
+        ],
+        tip: "S3: 20kg×20×4. Excellent volume pour triceps. Contrôle la descente !"
+    },
+    upperback: {
+        name: "Upper Back machine",
+        target: "12 reps × 3 tours • Repos 90s",
+        muscle: "Trapèzes moyens, rhomboïdes, deltoïdes postérieurs",
+        video: "https://www.youtube.com/watch?v=o0lTISpBBgA",
+        hasWeight: true, hasTimer: false,
+        instructions: [
+            "Assieds-toi face aux poignées, dos droit",
+            "Règle la presse à pectoraux pour que la charge soit légèrement soulevée quand tu tends les bras",
+            "Saisis les poignées en pronation (paumes vers le bas), mains à largeur d'épaules",
+            "Plie les bras en ramenant les coudes vers l'arrière — serre les omoplates",
+            "Retour contrôlé, les poids ne reviennent pas complètement en position de repos"
+        ],
+        tip: "S1: 15kg×12×3 • S2: 20kg×12×4. S3: consolide 20kg × 12 reps × 3-4 tours. Excellent pour ta posture."
+    },
+    abcrunch: {
+        name: "Abdominal Crunch machine",
+        target: "15 reps × 3 tours • Repos 60s",
+        muscle: "Grand droit, obliques",
+        video: "https://www.youtube.com/watch?v=7a2uGVaHqbc",
+        hasWeight: true, hasTimer: false,
+        instructions: [
+            "Règle le siège pour que l'axe de rotation soit au niveau du nombril",
+            "Attrape les poignées, coudes pliés devant toi",
+            "Contracte le ventre et fléchis le buste vers l'avant",
+            "Tiens 1 seconde en bas, expire complètement",
+            "Remonte de façon contrôlée — ne te laisse pas tomber en arrière"
+        ],
+        tip: "S1: 25kg×15×4 • S2: 25kg×20×3. S3: 27.5kg×20×3. S4-S5: consolide ou pousse 30kg."
+    },
+    adductor: {
+        name: "Adductor machine",
+        target: "15 reps × 3 tours • Repos 60s",
+        muscle: "Adducteurs (grand, court, long), gracile",
+        video: "https://www.youtube.com/watch?v=3yJFAaktB4Q",
+        hasWeight: true, hasTimer: false,
+        instructions: [
+            "Assieds-toi sur la machine, dos bien calé",
+            "Place l'intérieur des cuisses contre les pads",
+            "Règle l'amplitude pour sentir un léger étirement au départ",
+            "Rapproche les jambes en contractant les adducteurs",
+            "Retour contrôlé, ne laisse pas claquer les poids"
+        ],
+        tip: "S2: 17.5kg×20×3 • S3: 30kg×15×4 (grosse progression !). S4-S5: consolide 30-35kg × 15 × 4."
+    },
+    chestpress: {
+        name: "Chest Press (poulie)",
+        target: "12 reps × 3 tours • Repos 90s",
+        muscle: "Pectoraux, deltoïdes antérieurs, triceps",
+        video: "https://www.youtube.com/watch?v=Iwe6AmxVf7o",
+        hasWeight: true, hasTimer: false,
+        instructions: [
+            "Règle les poulies à hauteur pectoraux, debout dos à la machine",
+            "Saisis les poignées, avance d'un pas, penché légèrement en avant",
+            "Pousse devant toi en contractant les pectoraux",
+            "Ramène contrôlé, coudes écartés",
+            "Garde le core engagé, ne creuse pas le dos"
+        ],
+        tip: "Alternative au Pec Deck. Commence léger (15-20kg) pour maîtriser l'équilibre."
+    },
+    highrow: {
+        name: "High Row (poulie)",
+        target: "12 reps × 3 tours • Repos 90s",
+        muscle: "Trapèzes supérieurs, rhomboïdes, deltoïdes postérieurs",
+        video: "https://www.youtube.com/watch?v=UCXxvVItLoM",
+        hasWeight: true, hasTimer: false,
+        instructions: [
+            "Règle les poulies en position haute",
+            "Debout face à la machine, attrape les poignées",
+            "Tire vers toi en gardant les coudes hauts",
+            "Serre les omoplates en fin de mouvement",
+            "Retour contrôlé sans laisser claquer les poids"
+        ],
+        tip: "Excellent pour trapèzes et posture. Complète Upper Back machine. Commence 15-20kg."
+    },
+    shoulderpress: {
+        name: "Shoulder Press (poulie)",
+        target: "12 reps × 3 tours • Repos 90s",
+        muscle: "Deltoïdes (antérieur, latéral), triceps",
+        video: "https://www.youtube.com/watch?v=qEwKCR5JCog",
+        hasWeight: true, hasTimer: false,
+        instructions: [
+            "Règle les poulies en position basse",
+            "Debout dos à la machine, attrape les poignées à hauteur épaules",
+            "Pousse vers le haut en extension complète",
+            "Descente contrôlée jusqu'à hauteur oreilles",
+            "Core serré, ne cambre pas le dos"
+        ],
+        tip: "Travail épaules complet. Commence léger (10-15kg) pour maîtriser la stabilité."
+    },
+    trunkrotation: {
+        name: "Trunk Rotation (poulie)",
+        target: "15 reps × 3 tours par côté • Repos 60s",
+        muscle: "Obliques, transverse, érecteurs du rachis",
+        video: "https://www.youtube.com/watch?v=DR6gebF3bPI",
+        hasWeight: true, hasTimer: false,
+        instructions: [
+            "Règle la poulie à hauteur poitrine",
+            "Debout de côté à la machine, pieds largeur épaules",
+            "Attrape la poignée avec les deux mains, bras tendus",
+            "Fais pivoter le buste en gardant les hanches fixes",
+            "Retour contrôlé à la position de départ"
+        ],
+        tip: "Excellent pour obliques et rotation. Mouvement lent et contrôlé. Commence 10-15kg."
+    }
+};
+
+// Semaines: 3 séances comptées (A, B, Cardio) + 2 séances bis (références)
+const WEEKS = {
+    1: {
+        main: [
+            {
+                id: "w1sA", type: "strength", label: "Séance A", subtitle: "Dos + Jambes + Core",
+                icon: "🏋️", iconClass: "type-a",
+                warmup: ["Elliptique tranquille : 5 min", "Rotations épaules : 10 cercles avant/arrière", "Rotations buste assis : 10 par côté", "Cat-cow : 8 reps lentes"],
+                exercises: ["latpulldown", "lowrow", "legpress", "plank", "birddog"],
+                cardio: "Elliptique 20 min • Niveau 7-8",
+                cooldown: ["Étirement dos — child pose : 45 sec", "Étirement ischios : 30 sec par jambe", "Rotations thoraciques : 10 par côté"]
+            },
+            {
+                id: "w1sB", type: "strength", label: "Séance B", subtitle: "Poitrine + Épaules + Core",
+                icon: "💪", iconClass: "type-b",
+                warmup: ["Marche inclinée tapis : 5 min", "Ponts fessiers : 10 reps lentes", "Rotations hanches : 10 cercles", "Rotations thoraciques : 8 par côté"],
+                exercises: ["pectoral", "facepull", "rdl", "sideplank", "deadbug"],
+                cardio: "Elliptique 25 min • Niveau 8-9",
+                cooldown: ["Étirement pectoraux au mur : 30 sec par côté", "Étirement fessiers : 30 sec par côté", "Child pose : 45 sec"]
+            },
+            {
+                id: "w1sC", type: "cardio", label: "Séance Cardio", subtitle: "Elliptique ou tapis",
+                icon: "🏃", iconClass: "type-cardio",
+                cardioTarget: "30-35 min • Niveau 8-10",
+                cardioNotes: ["Échauffement 3 min niveau 4-5", "20-25 min à ton niveau cible (8-10)", "Retour calme 3-5 min niveau 3-4"],
+                tip: "Tu avais fait 30 min niveau 10 → c'est ton niveau. Reste sur 8-9 si t'as fait de la muscu dans la semaine, 10 si séance dédiée cardio."
+            }
+        ],
+        bis: [
+            {
+                id: "w1sAbis", type: "strength", label: "Séance A — bis", subtitle: "Référence semaine 1",
+                icon: "🏋️", iconClass: "type-a",
+                warmup: ["Elliptique tranquille : 5 min", "Rotations épaules", "Rotations buste assis", "Cat-cow"],
+                exercises: ["latpulldown", "lowrow", "legpress", "plank", "birddog"],
+                cardio: "Elliptique 20 min • Niveau 7-8",
+                cooldown: ["Child pose : 45 sec", "Étirement ischios", "Rotations thoraciques"]
+            },
+            {
+                id: "w1sBbis", type: "strength", label: "Séance B — bis", subtitle: "Référence semaine 1",
+                icon: "💪", iconClass: "type-b",
+                warmup: ["Marche inclinée tapis : 5 min", "Ponts fessiers", "Rotations hanches", "Rotations thoraciques"],
+                exercises: ["pectoral", "facepull", "rdl", "sideplank", "deadbug"],
+                cardio: "Elliptique 25 min • Niveau 8-9",
+                cooldown: ["Étirement pectoraux", "Étirement fessiers", "Child pose"]
+            }
+        ]
+    },
+    2: {
+        main: [
+            {
+                id: "w2sA", type: "strength", label: "Séance A", subtitle: "Dos + Jambes + Core • Charges +5%",
+                icon: "🏋️", iconClass: "type-a",
+                warmup: ["Elliptique tranquille : 5 min", "Rotations épaules : 10 cercles avant/arrière", "Rotations buste assis : 10 par côté", "Cat-cow : 8 reps lentes"],
+                exercises: ["latpulldown", "lowrow", "legpress", "plank", "birddog"],
+                cardio: "Elliptique 25 min • Niveau 8-9",
+                cooldown: ["Child pose : 45 sec", "Étirement ischios : 30 sec par jambe", "Rotations thoraciques : 10 par côté"]
+            },
+            {
+                id: "w2sB", type: "strength", label: "Séance B", subtitle: "Poitrine + Bras + Dos haut + Core • Adapté S2",
+                icon: "💪", iconClass: "type-b",
+                warmup: ["Marche inclinée tapis : 5 min", "Ponts fessiers : 10 reps lentes", "Rotations hanches : 10 cercles", "Rotations thoraciques : 8 par côté"],
+                exercises: ["pectoral", "armcurl", "upperback", "rdl", "abcrunch", "sideplank", "deadbug"],
+                cardio: "Tapis 20-25 min • 7.5-8 km/h",
+                cooldown: ["Étirement pectoraux : 30 sec par côté", "Étirement fessiers : 30 sec par côté", "Child pose : 45 sec"]
+            },
+            {
+                id: "w2sC", type: "cardio", label: "Séance Cardio", subtitle: "Elliptique ou tapis",
+                icon: "🏃", iconClass: "type-cardio",
+                cardioTarget: "35-40 min • Niveau 8-10",
+                cardioNotes: ["Échauffement 3 min niveau 4-5", "25-30 min à ton niveau cible", "Retour calme 5 min niveau 3"],
+                tip: "Semaine 2 : augmente la durée (+5 min) ou le niveau (+1). Pas les deux en même temps."
+            }
+        ],
+        bis: [
+            {
+                id: "w2sAbis", type: "strength", label: "Séance A — bis", subtitle: "Référence semaine 2",
+                icon: "🏋️", iconClass: "type-a",
+                warmup: ["Elliptique tranquille : 5 min", "Rotations épaules", "Rotations buste assis", "Cat-cow"],
+                exercises: ["latpulldown", "lowrow", "legpress", "plank", "birddog"],
+                cardio: "Elliptique 25 min • Niveau 8-9",
+                cooldown: ["Child pose", "Étirement ischios", "Rotations thoraciques"]
+            },
+            {
+                id: "w2sBbis", type: "strength", label: "Séance B — bis", subtitle: "Référence semaine 2",
+                icon: "💪", iconClass: "type-b",
+                warmup: ["Marche inclinée tapis : 5 min", "Ponts fessiers", "Rotations hanches", "Rotations thoraciques"],
+                exercises: ["pectoral", "armcurl", "upperback", "rdl", "abcrunch", "sideplank", "deadbug"],
+                cardio: "Tapis 20-25 min • 7.5-8 km/h",
+                cooldown: ["Étirement pectoraux", "Étirement fessiers", "Child pose"]
+            }
+        ]
+    },
+    3: {
+        main: [
+            {
+                id: "w3sA", type: "strength", label: "Séance A", subtitle: "Dos + Jambes + Core • Charges +10%",
+                icon: "🏋️", iconClass: "type-a",
+                warmup: ["Elliptique tranquille : 5 min", "Rotations épaules : 10 cercles avant/arrière", "Rotations buste assis : 10 par côté", "Cat-cow : 8 reps lentes"],
+                exercises: ["latpulldown", "lowrow", "legpress", "plank", "birddog"],
+                cardio: "Elliptique 30 min • Niveau 9-10",
+                cooldown: ["Child pose : 45 sec", "Étirement ischios : 30 sec par jambe", "Rotations thoraciques : 10 par côté"]
+            },
+            {
+                id: "w3sB", type: "strength", label: "Séance B", subtitle: "Poitrine + Bras + Dos haut + Core • Charges +10%",
+                icon: "💪", iconClass: "type-b",
+                warmup: ["Marche inclinée tapis : 5 min", "Ponts fessiers : 10 reps lentes", "Rotations hanches : 10 cercles", "Rotations thoraciques : 8 par côté"],
+                exercises: ["pectoral", "armcurl", "upperback", "rdl", "abcrunch", "sideplank", "deadbug"],
+                cardio: "Tapis 25-30 min • 8-8.5 km/h",
+                cooldown: ["Étirement pectoraux : 30 sec par côté", "Étirement fessiers : 30 sec par côté", "Child pose : 45 sec"]
+            },
+            {
+                id: "w3sC", type: "cardio", label: "Séance Cardio", subtitle: "Elliptique ou tapis",
+                icon: "🏃", iconClass: "type-cardio",
+                cardioTarget: "40-45 min • Niveau 9-11",
+                cardioNotes: ["Échauffement 3 min niveau 4-5", "30-35 min à ton niveau cible", "Retour calme 5 min niveau 3"],
+                tip: "Semaine 3 : vise 40+ min ou niveau 10+. Tu peux aussi faire des intervalles : 2 min niv.11 / 3 min niv.8, répéter."
+            }
+        ],
+        bis: [
+            {
+                id: "w3sAbis", type: "strength", label: "Séance A — bis", subtitle: "Référence semaine 3",
+                icon: "🏋️", iconClass: "type-a",
+                warmup: ["Elliptique tranquille : 5 min", "Rotations épaules", "Rotations buste assis", "Cat-cow"],
+                exercises: ["latpulldown", "lowrow", "legpress", "plank", "birddog"],
+                cardio: "Elliptique 30 min • Niveau 9-10",
+                cooldown: ["Child pose", "Étirement ischios", "Rotations thoraciques"]
+            },
+            {
+                id: "w3sBbis", type: "strength", label: "Séance B — bis", subtitle: "Référence semaine 3",
+                icon: "💪", iconClass: "type-b",
+                warmup: ["Marche inclinée tapis : 5 min", "Ponts fessiers", "Rotations hanches", "Rotations thoraciques"],
+                exercises: ["pectoral", "armcurl", "upperback", "rdl", "abcrunch", "sideplank", "deadbug"],
+                cardio: "Tapis 25-30 min • 8-8.5 km/h",
+                cooldown: ["Étirement pectoraux", "Étirement fessiers", "Child pose"]
+            }
+        ]
+    },
+    4: {
+        main: [
+            {
+                id: "w4sA", type: "strength", label: "Séance A", subtitle: "Dos + Jambes + Core",
+                icon: "🏋️", iconClass: "type-a",
+                warmup: ["Elliptique 5 min niv. 6-7", "Rotations épaules : 10 avant/arrière", "Cat-cow : 8 reps", "Rotations buste : 10 par côté"],
+                exercises: ["latpulldown", "lowrow", "legpress", "facepull", "plank", "birddog"],
+                cardio: "Tapis 20 min ou Elliptique 25 min",
+                cooldown: ["Child pose : 45 sec", "Étirement ischios : 30 sec/jambe", "Rotations thoraciques : 10/côté"]
+            },
+            {
+                id: "w4sB", type: "strength", label: "Séance B", subtitle: "Poitrine + Bras + Jambes + Core",
+                icon: "💪", iconClass: "type-b",
+                warmup: ["Tapis marche 5 min", "Ponts fessiers : 10 reps", "Rotations hanches : 10 cercles", "Push-ups genoux : 5 reps"],
+                exercises: ["pectoral", "armcurl", "armextension", "upperback", "adductor", "legpress", "abcrunch", "sideplank", "deadbug"],
+                cardio: "Tapis 20 min à 8.5 km/h",
+                cooldown: ["Étirement pectoraux : 30 sec/côté", "Étirement triceps : 30 sec/bras", "Child pose : 45 sec"]
+            },
+            {
+                id: "w4sC", type: "cardio", label: "Séance Cardio", subtitle: "Elliptique ou running",
+                icon: "🏃", iconClass: "type-cardio",
+                cardioTarget: "35-40 min • Niveau 9-11",
+                cardioNotes: ["Échauffement 3-5 min niveau 5-6", "25-30 min à ton niveau cible", "Retour calme 5 min niveau 3-4"],
+                tip: "Vise 4-5 km au tapis à 8.5-9 km/h, ou 35-40 min elliptique niv. 10-11."
+            }
+        ],
+        bis: [
+            {
+                id: "w4sAbis", type: "strength", label: "Séance A — bis", subtitle: "Référence semaine 4",
+                icon: "🏋️", iconClass: "type-a",
+                warmup: ["Elliptique 5 min", "Rotations épaules", "Cat-cow", "Rotations buste"],
+                exercises: ["latpulldown", "lowrow", "legpress", "facepull", "plank", "birddog"],
+                cardio: "Optionnel", cooldown: ["Child pose", "Étirement ischios", "Rotations thoraciques"]
+            },
+            {
+                id: "w4sBbis", type: "strength", label: "Séance B — bis", subtitle: "Référence semaine 4",
+                icon: "💪", iconClass: "type-b",
+                warmup: ["Tapis marche 5 min", "Ponts fessiers", "Rotations hanches", "Push-ups genoux"],
+                exercises: ["pectoral", "armcurl", "armextension", "upperback", "adductor", "legpress", "abcrunch", "sideplank", "deadbug"],
+                cardio: "Optionnel", cooldown: ["Étirement pectoraux", "Étirement triceps", "Child pose"]
+            }
+        ]
+    },
+    5: {
+        main: [
+            {
+                id: "w5sA", type: "strength", label: "Séance A", subtitle: "Dos + Jambes + Core",
+                icon: "🏋️", iconClass: "type-a",
+                warmup: ["Elliptique 5 min niv. 6-7", "Rotations épaules : 10 avant/arrière", "Cat-cow : 8 reps", "Rotations buste : 10 par côté"],
+                exercises: ["latpulldown", "lowrow", "legpress", "highrow", "plank", "birddog"],
+                cardio: "Tapis 20 min ou Elliptique 25 min",
+                cooldown: ["Child pose : 45 sec", "Étirement ischios : 30 sec/jambe", "Rotations thoraciques : 10/côté"]
+            },
+            {
+                id: "w5sB", type: "strength", label: "Séance B", subtitle: "Poitrine + Bras + Jambes + Core",
+                icon: "💪", iconClass: "type-b",
+                warmup: ["Tapis marche 5 min", "Ponts fessiers : 10 reps", "Rotations hanches : 10 cercles", "Push-ups genoux : 5 reps"],
+                exercises: ["pectoral", "armcurl", "armextension", "upperback", "adductor", "legpress", "abcrunch", "sideplank", "deadbug"],
+                cardio: "Tapis 20 min à 8.5 km/h",
+                cooldown: ["Étirement pectoraux : 30 sec/côté", "Étirement triceps : 30 sec/bras", "Child pose : 45 sec"]
+            },
+            {
+                id: "w5sC", type: "cardio", label: "Séance Cardio", subtitle: "Elliptique ou running",
+                icon: "🏃", iconClass: "type-cardio",
+                cardioTarget: "35-40 min • Niveau 9-11",
+                cardioNotes: ["Échauffement 3-5 min niveau 5-6", "25-30 min à ton niveau cible", "Retour calme 5 min niveau 3-4"],
+                tip: "Vise 4-5 km au tapis à 8.5-9 km/h, ou 35-40 min elliptique niv. 10-11."
+            }
+        ],
+        bis: [
+            {
+                id: "w5sAbis", type: "strength", label: "Séance A — bis", subtitle: "Référence semaine 5",
+                icon: "🏋️", iconClass: "type-a",
+                warmup: ["Elliptique 5 min", "Rotations épaules", "Cat-cow", "Rotations buste"],
+                exercises: ["latpulldown", "lowrow", "legpress", "highrow", "plank", "birddog"],
+                cardio: "Optionnel", cooldown: ["Child pose", "Étirement ischios", "Rotations thoraciques"]
+            },
+            {
+                id: "w5sBbis", type: "strength", label: "Séance B — bis", subtitle: "Référence semaine 5",
+                icon: "💪", iconClass: "type-b",
+                warmup: ["Tapis marche 5 min", "Ponts fessiers", "Rotations hanches", "Push-ups genoux"],
+                exercises: ["pectoral", "armcurl", "armextension", "upperback", "adductor", "legpress", "abcrunch", "sideplank", "deadbug"],
+                cardio: "Optionnel", cooldown: ["Étirement pectoraux", "Étirement triceps", "Child pose"]
+            }
+        ]
+    }
+};
+
+
+function initHistory() {
+    // Version flag : force reset si nécessaire
+    const VERSION = 'v12';
+    if (localStorage.getItem('appVersion') === VERSION) return;
+    const existing = JSON.parse(localStorage.getItem('workoutTracking') || '{}');
+    const d1 = new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(); // Séance A S1
+    const d2 = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(); // Cardio S1
+    const d3 = new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(); // Séance B S1
+    const d4 = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(); // Séance A S2
+    const d5 = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(); // Séance B S2
+    const d6 = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(); // Séance A S3
+    const d7 = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(); // Cardio S3
+    const d8 = new Date().toISOString(); // Séance B S3 aujourd'hui
+    const history = {
+        "w1sA": existing["w1sA"] || {
+            completed: true, completedAt: d1,
+            exercises: {
+                pectoral:    { done: true, weight: "20", reps: "15", sets: "3", feeling: "Facile", timestamp: d1 },
+                latpulldown: { done: true, weight: "30", reps: "15", sets: "3", feeling: "Moyen",  timestamp: d1 },
+                lowrow:      { done: true, weight: "30", reps: "15", sets: "3", feeling: "Moyen",  timestamp: d1 },
+                legpress:    { done: true, weight: "30", reps: "20", sets: "3", feeling: "Facile", timestamp: d1 },
+                plank:       { done: true, weight: null, reps: "60", sets: "3", feeling: "Moyen",  timestamp: d1 },
+                birddog:     { done: true, weight: null, reps: "20", sets: "3", feeling: "Facile", timestamp: d1 }
+            }
+        },
+        "w1sC": existing["w1sC"] || {
+            completed: true, completedAt: d2,
+            cardioData: { duration: "30", level: "10", kcal: "294", distance: "1.46" }
+        },
+        "w1sB": existing["w1sB"] || {
+            completed: true, completedAt: d3,
+            exercises: {
+                pectoral:  { done: true, weight: "25", reps: "12", sets: "3", feeling: "Moyen", timestamp: d3 },
+                facepull:  { done: true, weight: "15", reps: "12", sets: "3", feeling: "Moyen", timestamp: d3 },
+                rdl:       { done: true, weight: "25", reps: "20", sets: "3", feeling: "Dur",   timestamp: d3 },
+                sideplank: { done: true, weight: null, reps: "30", sets: "3", feeling: "Moyen", timestamp: d3 },
+                deadbug:   { done: true, weight: null, reps: "12", sets: "3", feeling: "Moyen", timestamp: d3 }
+            },
+            extras: {
+                armcurl:    { weight: "20", reps: "10", sets: "3", feeling: "Dur" },
+                abcrunch:   { weight: "25", reps: "15", sets: "4", feeling: "Moyen" },
+                upperback:  { weight: "15", reps: "12", sets: "3", feeling: "Moyen" },
+                tapis:      { duration: "22", distance: "3.0", speed_avg: "8.0", speed_max: "9.8", hr_avg: "153", hr_max: "185", kcal: "206" },
+                elliptique: { duration: "10", level: "10" }
+            }
+        },
+        "w2sA": existing["w2sA"] || {
+            completed: true, completedAt: d4,
+            exercises: {
+                latpulldown: { done: true, weight: "30", reps: "12", sets: "3", feeling: "Moyen", timestamp: d4 },
+                lowrow:      { done: true, weight: "35", reps: "15", sets: "3", feeling: "Moyen", timestamp: d4 },
+                legpress:    { done: true, weight: "60", reps: "15", sets: "3", feeling: "Moyen", timestamp: d4 },
+                plank:       { done: true, weight: null, reps: "60", sets: "3", feeling: "Dur",   timestamp: d4 },
+                birddog:     { done: true, weight: null, reps: "20", sets: "3", feeling: "Moyen", timestamp: d4 }
+            },
+            extras: {
+                elliptique: { duration: "5", level: "12", note: "échauffement" },
+                tapis:      { duration: "23", distance: "3.0", speed_avg: "7.7", kcal: "221", moves: "526" }
+            }
+        },
+        "w2sB": existing["w2sB"] || {
+            completed: true, completedAt: d5,
+            exercises: {
+                pectoral:  { done: true, weight: "25", reps: "12", sets: "4", feeling: "Moyen", timestamp: d5 },
+                armcurl:   { done: true, weight: "20", reps: "10", sets: "3", feeling: "Dur",   timestamp: d5 },
+                upperback: { done: true, weight: "20", reps: "12", sets: "4", feeling: "Moyen", timestamp: d5 },
+                rdl:       { done: true, weight: "20", reps: "12", sets: "3", feeling: "Moyen", timestamp: d5 },
+                abcrunch:  { done: true, weight: "25", reps: "20", sets: "3", feeling: "Moyen", timestamp: d5 },
+                sideplank: { done: true, weight: null, reps: "40", sets: "3", feeling: "Moyen", timestamp: d5 },
+                deadbug:   { done: true, weight: null, reps: "12", sets: "3", feeling: "Moyen", timestamp: d5 }
+            },
+            extras: {
+                adductor: { weight: "17.5", reps: "20", sets: "3", feeling: "Moyen" },
+                running:  { duration: "30", distance: "4.0", speed_avg: "7.8", kcal: "303", moves: "721" }
+            },
+            notes: "Pectoral 4 tours • Upper Back 4 tours • RDL barre libre avec crans sécurité"
+        },
+        "w3sA": existing["w3sA"] || {
+            completed: true, completedAt: d6,
+            exercises: {
+                latpulldown: { done: true, weight: "35", reps: "12", sets: "3", feeling: "Dur",   timestamp: d6 },
+                lowrow:      { done: true, weight: "35", reps: "12", sets: "4", feeling: "Moyen", timestamp: d6 },
+                legpress:    { done: true, weight: "70", reps: "15", sets: "4", feeling: "Moyen", timestamp: d6 },
+                plank:       { done: true, weight: null, reps: "45", sets: "3", feeling: "Dur",   timestamp: d6 },
+                birddog:     { done: true, weight: null, reps: "15", sets: "3", feeling: "Moyen", timestamp: d6 }
+            },
+            extras: {
+                elliptique: { duration: "5", level: "10", note: "échauffement" },
+                running:    { duration: "21", distance: "3.0", speed_avg: "8.3", kcal: "222", moves: "529" }
+            },
+            notes: "Low Row 4 tours • Leg Press 4 tours • Vertical traction dernière série difficile • Planche dur à la fin"
+        },
+        "w3sC": existing["w3sC"] || {
+            completed: true, completedAt: d7,
+            cardioData: { duration: "42", level: "8", kcal: "444", distance: "6.0" },
+            extras: {
+                speed_avg: "8.5",
+                moves: "1057"
+            },
+            notes: "Plus longue session tapis : 6 km en 42 min ! Endurance cardio excellente."
+        },
+        "w3sB": existing["w3sB"] || {
+            completed: true, completedAt: d8,
+            exercises: {
+                armcurl:   { done: true, weight: "20", reps: "10", sets: "3", feeling: "Moyen", timestamp: d8 },
+                upperback: { done: true, weight: "20", reps: "12", sets: "3", feeling: "Moyen", timestamp: d8 },
+                rdl:       { done: true, weight: "20", reps: "12", sets: "3", feeling: "Moyen", timestamp: d8 },
+                abcrunch:  { done: true, weight: "25", reps: "20", sets: "3", feeling: "Moyen", timestamp: d8 },
+                sideplank: { done: true, weight: null, reps: "30", sets: "3", feeling: "Moyen", timestamp: d8 },
+                deadbug:   { done: true, weight: null, reps: "12", sets: "3", feeling: "Moyen", timestamp: d8 }
+            },
+            extras: {
+                pectoral:      { weight: "25", reps: "12", sets: "4", feeling: "Dur", note: "dernier difficile" },
+                armextension:  { weight: "20", reps: "20", sets: "4", feeling: "Moyen" },
+                adductor:      { weight: "30", reps: "15", sets: "4", feeling: "Moyen", note: "grosse progression 17.5→30kg!" },
+                legpress:      { weight: "70", reps: "15", sets: "3", feeling: "Moyen" },
+                running:       { duration: "21", distance: "3.0", speed_avg: "8.46", kcal: "226", moves: "538" }
+            },
+            notes: "Chest press 25kg×12×4 (dernier dur) • Arm extension 20kg×20×4 • Adductor 30kg×15×4 (progression 17.5→30!) • Leg press 70kg×15×3 • Running 3km/21min"
+        },
+        "w4sA": existing["w4sA"] || {
+            completed: true, completedAt: "2026-03-03T14:34:59.855990",
+            exercises: {
+                latpulldown: { done: true, weight: "30", reps: "12", sets: "3", feeling: "Moyen", timestamp: "2026-03-03T14:34:59.855990" },
+                lowrow:      { done: true, weight: "35", reps: "12", sets: "4", feeling: "Moyen", timestamp: "2026-03-03T14:34:59.855990" },
+                legpress:    { done: true, weight: "70", reps: "15", sets: "3", feeling: "Moyen", timestamp: "2026-03-03T14:34:59.855990" },
+                facepull:    { done: true, weight: "15", reps: "15", sets: "3", feeling: "Moyen", timestamp: "2026-03-03T14:34:59.855990" },
+                plank:       { done: true, weight: null, reps: "45", sets: "3", feeling: "Moyen", timestamp: "2026-03-03T14:34:59.855990" },
+                birddog:     { done: true, weight: null, reps: "15", sets: "3", feeling: "Moyen", timestamp: "2026-03-03T14:34:59.855990" }
+            },
+            extras: {
+                shoulderpress: { weight: "30", reps: "12", sets: "3", feeling: "Dur" },
+                russiantwist:  { weight: "2", reps: "20", sets: "3", feeling: "Moyen" }
+            },
+            notes: "Vertical traction 30kg×12×3 • Low row 35kg×12×4 • Leg press 70kg×15×3 • Face pull 15kg×15×3 • Planche 45s×3 • Bird-dog 15/côté×3 • Shoulder press 30kg dur • Russian twist 2kg"
+        }
+    };
+    localStorage.setItem('workoutTracking', JSON.stringify(history));
+    localStorage.setItem('appVersion', 'v12');
+}
+
+let currentWeek = 1;
+let currentExercise = null;
+let selectedFeeling = null;
+let timerInterval = null;
+let timerSeconds = 0;
+let expandedSessions = {};
+
+document.addEventListener('DOMContentLoaded', () => {
+    initHistory();
+    
+    // Register service worker for PWA
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+            .then(() => console.log('✓ Service Worker registered'))
+            .catch(err => console.log('✗ SW registration failed:', err));
+    }
+    
+    // PWA install prompt
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        console.log('💪 App can be installed on home screen!');
+    });
+    
+    // Auto-expand sessions not yet done
+    const tracking = getTracking();
+    ['w1sA','w1sB','w1sC','w2sA','w2sB','w2sC','w3sA','w3sB','w3sC'].forEach(id => {
+        expandedSessions[id] = !(tracking[id]?.completed);
+    });
+    render();
+    document.querySelectorAll('.week-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentWeek = parseInt(btn.dataset.week);
+            render();
+        });
+    });
+});
+
+function getTracking() { return JSON.parse(localStorage.getItem('workoutTracking') || '{}'); }
+function saveTracking(data) { localStorage.setItem('workoutTracking', JSON.stringify(data)); }
+
+function toggleExpand(id) {
+    expandedSessions[id] = !expandedSessions[id];
+    render();
+}
+
+function mediaHtml(exerciseId) {
+    const m = MEDIA[exerciseId];
+    if (!m) return `<div class="media-placeholder"><div class="ph-icon">🏋️</div><p>Pas de visuel disponible</p></div>`;
+    const badge = m.type === 'gif' ? 'GIF animé' : 'Image';
+    return `
+    <div class="media-container">
+        <img id="media_${exerciseId}" src="${m.gif}" alt="${exerciseId}"
+            onerror="handleMediaError('${exerciseId}')">
+        <span class="media-badge" id="mediabadge_${exerciseId}">${badge}</span>
+    </div>`;
+}
+
+function handleMediaError(id) {
+    const m = MEDIA[id];
+    const img = document.getElementById('media_'+id);
+    const badge = document.getElementById('mediabadge_'+id);
+    if (!img) return;
+    if (img.src !== m.img) {
+        img.src = m.img;
+        if (badge) badge.textContent = 'Image';
+    } else {
+        img.parentElement.style.display = 'none';
+    }
+}
+
+function render() {
+    const week = WEEKS[currentWeek];
+    const tracking = getTracking();
+    const container = document.getElementById('mainContainer');
+    container.innerHTML = '';
+
+    const mainIds = week.main.map(s => s.id);
+    const completedMain = mainIds.filter(id => tracking[id]?.completed).length;
+    const totalExos = week.main.filter(s => s.type === 'strength').reduce((acc, s) => {
+        return acc + s.exercises.filter(id => tracking[s.id]?.exercises?.[id]?.done).length;
+    }, 0);
+    document.getElementById('statSessions').textContent = `${completedMain}/3`;
+    document.getElementById('statExos').textContent = totalExos;
+    // Streak = séances principales complétées toutes semaines confondues
+    const allMainIds = ['w1sA','w1sB','w1sC','w2sA','w2sB','w2sC','w3sA','w3sB','w3sC','w4sA','w4sB','w4sC','w5sA','w5sB','w5sC'];
+    const streak = allMainIds.filter(id => tracking[id]?.completed).length;
+    document.getElementById('statStreak').textContent = streak;
+
+    // ── MAIN SESSIONS ──
+    week.main.forEach(session => {
+        const sTracking = tracking[session.id] || {};
+        const isDone = !!sTracking.completed;
+        const isExpanded = expandedSessions[session.id] !== false ? (!isDone || expandedSessions[session.id] === true) : false;
+        // override: if explicitly toggled
+        const expanded = expandedSessions[session.id] !== undefined ? expandedSessions[session.id] : !isDone;
+
+        const card = document.createElement('div');
+        card.className = 'session-card' + (isDone ? ' done-card' : '');
+
+        let doneSummary = '';
+        if (isDone && session.type === 'strength') {
+            const doneCount = session.exercises.filter(id => sTracking.exercises?.[id]?.done).length;
+            let extraLine = '';
+            if (sTracking.extras) {
+                const ex = sTracking.extras;
+                const parts = [];
+                if (ex.tapis) parts.push(`🏃 ${ex.tapis.distance}km/${ex.tapis.duration}min • FC ${ex.tapis.hr_avg}bpm • ${ex.tapis.kcal}kcal`);
+                if (ex.armcurl) parts.push(`💪 Arm Curl ${ex.armcurl.weight}kg×${ex.armcurl.reps}×${ex.armcurl.sets}`);
+                if (ex.abcrunch) parts.push(`🔥 Abdo ${ex.abcrunch.weight}kg×${ex.abcrunch.reps}×${ex.abcrunch.sets}`);
+                if (ex.upperback) parts.push(`🔙 Upper Back ${ex.upperback.weight}kg×${ex.upperback.reps}×${ex.upperback.sets}`);
+                if (ex.elliptique) parts.push(`⚡ Elliptique niv.${ex.elliptique.level} ${ex.elliptique.duration}min`);
+                if (parts.length) extraLine = `<div class="session-done-summary" style="font-size:11px;margin-top:2px;opacity:0.85">+ ${parts.join(' • ')}</div>`;
+            }
+            doneSummary = `<div class="session-done-summary">✓ ${doneCount}/${session.exercises.length} exercices complétés</div>${extraLine}`;
+        } else if (isDone && session.type === 'cardio') {
+            const cd = sTracking.cardioData;
+            if (cd) doneSummary = `<div class="session-done-summary">✓ ${cd.duration} min • Niv. ${cd.level} • ${cd.kcal} kcal</div>`;
+            else doneSummary = `<div class="session-done-summary">✓ Séance complétée</div>`;
+        }
+
+        const headerHtml = `
+        <div class="session-header" onclick="toggleExpand('${session.id}')">
+            <div class="session-header-left">
+                <div class="session-icon ${isDone ? 'type-done' : session.iconClass}">${isDone ? '✅' : session.icon}</div>
+                <div class="session-info">
+                    <div class="session-title">${session.label}</div>
+                    <div class="session-meta">${session.subtitle}</div>
+                    ${doneSummary}
+                </div>
+            </div>
+            <div class="session-header-right">
+                <div class="session-check ${isDone ? 'done' : ''}" onclick="event.stopPropagation(); toggleSession('${session.id}')">${isDone ? '✓' : ''}</div>
+                <div class="toggle-arrow ${expanded ? 'open' : ''}">▼</div>
+            </div>
+        </div>`;
+
+        let bodyHtml = '';
+        if (session.type === 'strength') {
+            const exHtml = session.exercises.map(id => {
+                const ex = EXERCISES[id];
+                const exData = sTracking.exercises?.[id];
+                const exDone = !!exData?.done;
+                const logLine = exDone ? [exData.weight ? exData.weight + ' kg' : null, exData.reps ? exData.reps + ' reps' : null, exData.feeling].filter(Boolean).join(' • ') : '';
+                return `<div class="exercise-item ${exDone ? 'done' : ''}" onclick="openModal('${session.id}', '${id}')">
+                    <div style="flex:1">
+                        <div class="exercise-name">${ex.name}</div>
+                        <div class="exercise-meta">${ex.target}</div>
+                        ${exDone ? `<div class="exercise-logged">✓ ${logLine}</div>` : ''}
+                    </div>
+                    <div class="ex-check ${exDone ? 'done' : ''}">${exDone ? '✓' : ''}</div>
+                </div>`;
+            }).join('');
+            bodyHtml = `
+            <div class="session-body ${expanded ? '' : 'collapsed'}">
+                <div class="block-label">Échauffement (5-7 min)</div>
+                <div class="warmup-block">${session.warmup.map(w => `<div>• ${w}</div>`).join('')}</div>
+                <div class="block-label">Exercices • 3 tours • Repos 90s</div>
+                ${exHtml}
+                <div class="block-label">Cardio finisher</div>
+                <div class="warmup-block"><div>${session.cardio}</div></div>
+                <div class="block-label">Retour au calme</div>
+                <div class="warmup-block">${session.cooldown.map(c => `<div>• ${c}</div>`).join('')}</div>
+            </div>`;
+        } else if (session.type === 'cardio') {
+            const cd = sTracking.cardioData || {};
+            bodyHtml = `
+            <div class="cardio-session-body ${expanded ? '' : 'collapsed'}">
+                <div class="cardio-detail">
+                    <div class="cd-title">🎯 Objectif</div>
+                    <div class="cd-line">${session.cardioTarget}</div>
+                    ${session.cardioNotes.map(n => `<div class="cd-line">• ${n}</div>`).join('')}
+                </div>
+                <div class="tip-box" style="margin-bottom:16px;"><p>💡 ${session.tip}</p></div>
+                <div class="block-label">Logger ta séance</div>
+                <div class="cardio-log">
+                    <div class="cardio-field"><label>Durée (min)</label><input type="number" id="cd_duration_${session.id}" value="${cd.duration||''}" placeholder="30"></div>
+                    <div class="cardio-field"><label>Niveau</label><input type="number" id="cd_level_${session.id}" value="${cd.level||''}" placeholder="8"></div>
+                    <div class="cardio-field"><label>Kcal</label><input type="number" id="cd_kcal_${session.id}" value="${cd.kcal||''}" placeholder="250"></div>
+                    <div class="cardio-field"><label>Distance (km)</label><input type="number" step="0.01" id="cd_dist_${session.id}" value="${cd.distance||''}" placeholder="1.5"></div>
+                </div>
+                <button class="cardio-validate-btn" onclick="validateCardio('${session.id}')">✓ Valider la séance cardio</button>
+            </div>`;
+        }
+
+        card.innerHTML = headerHtml + bodyHtml;
+        container.appendChild(card);
+    });
+
+    // ── BIS SESSIONS (reference) ──
+    const refDiv = document.createElement('div');
+    refDiv.innerHTML = `<div class="ref-label">📋 Séances de référence (si 3e semaine de muscu)</div>`;
+    container.appendChild(refDiv);
+
+    week.bis.forEach(session => {
+        const sTracking = tracking[session.id] || {};
+        const isDone = !!sTracking.completed;
+        const expanded = expandedSessions['bis_'+session.id] || false;
+
+        const card = document.createElement('div');
+        card.className = 'session-card done-card';
+        card.style.opacity = '0.6';
+
+        const exHtml = session.exercises.map(id => {
+            const ex = EXERCISES[id];
+            return `<div class="exercise-item" onclick="openModal('${session.id}', '${id}')">
+                <div style="flex:1">
+                    <div class="exercise-name">${ex.name}</div>
+                    <div class="exercise-meta">${ex.target}</div>
+                </div>
+                <div class="ex-check"></div>
+            </div>`;
+        }).join('');
+
+        card.innerHTML = `
+        <div class="session-header" onclick="expandedSessions['bis_${session.id}'] = !expandedSessions['bis_${session.id}']; render()">
+            <div class="session-header-left">
+                <div class="session-icon ${session.iconClass}">${session.icon}</div>
+                <div class="session-info">
+                    <div class="session-title" style="font-size:14px;">${session.label}</div>
+                    <div class="session-meta">${session.subtitle}</div>
+                </div>
+            </div>
+            <div class="toggle-arrow ${expanded ? 'open' : ''}">▼</div>
+        </div>
+        <div class="session-body ${expanded ? '' : 'collapsed'}">
+            <div class="block-label">Exercices • 3 tours</div>
+            ${exHtml}
+            <div class="block-label">Cardio finisher</div>
+            <div class="warmup-block"><div>${session.cardio}</div></div>
+        </div>`;
+        container.appendChild(card);
+    });
+}
+
+function toggleSession(sessionId) {
+    const tracking = getTracking();
+    if (!tracking[sessionId]) tracking[sessionId] = {};
+    tracking[sessionId].completed = !tracking[sessionId].completed;
+    tracking[sessionId].completedAt = new Date().toISOString();
+    saveTracking(tracking);
+    // If marking done, collapse; if undoing, expand
+    expandedSessions[sessionId] = !tracking[sessionId].completed;
+    render();
+}
+
+function validateCardio(sessionId) {
+    const tracking = getTracking();
+    if (!tracking[sessionId]) tracking[sessionId] = {};
+    tracking[sessionId].completed = true;
+    tracking[sessionId].completedAt = new Date().toISOString();
+    
+    const cardioData = {
+        duration: document.getElementById('cd_duration_'+sessionId)?.value || '',
+        level: document.getElementById('cd_level_'+sessionId)?.value || '',
+        kcal: document.getElementById('cd_kcal_'+sessionId)?.value || '',
+        distance: document.getElementById('cd_dist_'+sessionId)?.value || ''
+    };
+    
+    tracking[sessionId].cardioData = cardioData;
+    saveTracking(tracking);
+    
+    // Sync to Google Sheets
+    syncCardioToSheets(sessionId, cardioData);
+    
+    expandedSessions[sessionId] = false;
+    render();
+}
+
+// ─── MODAL ────────────────────────────────────────────────────────────────────
+function openModal(sessionId, exerciseId) {
+    const ex = EXERCISES[exerciseId];
+    const tracking = getTracking();
+    const exData = tracking[sessionId]?.exercises?.[exerciseId] || null;
+    let prevData = null;
+    Object.entries(tracking).forEach(([sid, sdata]) => {
+        if (sid !== sessionId && sdata.exercises?.[exerciseId]?.done) {
+            if (!prevData || new Date(sdata.exercises[exerciseId].timestamp) > new Date(prevData.timestamp)) {
+                prevData = sdata.exercises[exerciseId];
+            }
+        }
+    });
+
+    currentExercise = { sessionId, exerciseId };
+    selectedFeeling = exData?.feeling || null;
+    document.getElementById('modalTitle').textContent = ex.name;
+    document.getElementById('modalTarget').textContent = ex.target + ' • ' + ex.muscle;
+
+    // Generate recommendation based on previous performance
+    let recommendation = '';
+    if (prevData) {
+        const feeling = prevData.feeling;
+        const weight = prevData.weight ? parseFloat(prevData.weight) : null;
+        const reps = prevData.reps ? parseInt(prevData.reps) : null;
+        const sets = prevData.sets ? parseInt(prevData.sets) : 3;
+        
+        if (feeling === 'Facile' && weight) {
+            recommendation = `→ Augmente à ${(weight + 2.5).toFixed(1)} kg`;
+        } else if (feeling === 'Dur' && sets < 4) {
+            recommendation = `→ Garde ${weight || 'même charge'}, consolide 3 tours`;
+        } else if (feeling === 'Moyen' && sets >= 3) {
+            recommendation = ex.hasWeight ? `→ Essaie ${weight ? (weight + 2.5).toFixed(1) : ''} kg ou +1 tour` : `→ +5 sec ou +1 tour`;
+        } else if (feeling === 'Moyen') {
+            recommendation = `→ Garde même charge, vise 3-4 tours`;
+        }
+    }
+    
+    const prevHtml = prevData ? `
+        <div class="prev-data">
+            <div class="prev-label">Dernière fois</div>
+            <div class="prev-values">
+                ${prevData.weight ? `<span class="prev-chip">${prevData.weight} kg</span>` : ''}
+                ${prevData.reps ? `<span class="prev-chip">${prevData.reps} reps</span>` : ''}
+                ${prevData.sets ? `<span class="prev-chip">${prevData.sets} tours</span>` : ''}
+                ${prevData.feeling ? `<span class="prev-chip">${prevData.feeling}</span>` : ''}
+            </div>
+            ${recommendation ? `<div class="prev-values recommendation"><span class="prev-chip suggest">${recommendation}</span></div>` : ''}
+        </div>` : '';
+
+    const timerDuration = ex.hasTimer ? ex.timerDuration : 90;
+    const timerLabel = ex.hasTimer ? "Timer gainage" : "Timer repos";
+
+    document.getElementById('modalBody').innerHTML = `
+        ${mediaHtml(exerciseId)}
+        <a href="${ex.video}" target="_blank" class="yt-btn">📺 Vidéo démonstration YouTube</a>
+        <div class="section-title">Instructions</div>
+        <ol class="instruction-list">${ex.instructions.map(i => `<li>${i}</li>`).join('')}</ol>
+        <div class="tip-box"><p>💡 ${ex.tip}</p></div>
+        <div class="timer-box">
+            <div class="timer-label">${timerLabel}</div>
+            <div class="timer-display" id="timerDisplay">${timerDuration}s</div>
+            <div class="timer-btns">
+                <button class="timer-btn" onclick="skipTimer(${timerDuration})">Skip ⏭</button>
+                <button class="timer-btn go" onclick="startTimer(${timerDuration})">▶ Démarrer</button>
+            </div>
+        </div>
+        <div class="section-title">Tracking</div>
+        <div class="tracking-box">
+            ${prevHtml}
+            ${ex.hasWeight ? `<div class="field"><label>Poids (kg)</label><input type="number" id="weightInput" value="${exData?.weight || ''}" placeholder="Ex: 30"></div>` : ''}
+            <div class="field"><label>${ex.hasTimer ? 'Durée tenue (sec)' : 'Reps effectuées'}</label><input type="number" id="repsInput" value="${exData?.reps || ''}" placeholder="${ex.hasTimer ? 'Ex: 45' : 'Ex: 12'}"></div>
+            <div class="field"><label>Nombre de tours</label><input type="number" id="setsInput" value="${exData?.sets || '3'}" placeholder="Ex: 3"></div>
+            <div class="field">
+                <label>Ressenti</label>
+                <div class="feeling-row">
+                    <div class="feeling-btn ${selectedFeeling === 'Facile' ? 'sel' : ''}" onclick="selectFeeling('Facile')">😊 Facile</div>
+                    <div class="feeling-btn ${selectedFeeling === 'Moyen' ? 'sel' : ''}" onclick="selectFeeling('Moyen')">😐 Moyen</div>
+                    <div class="feeling-btn ${selectedFeeling === 'Dur' ? 'sel' : ''}" onclick="selectFeeling('Dur')">😤 Dur</div>
+                </div>
+            </div>
+            <button class="validate-btn" onclick="validateExercise()">✓ Valider l'exercice</button>
+        </div>
+    `;
+    document.getElementById('modal').classList.add('active');
+    document.getElementById('modal').scrollTop = 0;
+}
+
+function closeModal() { stopTimer(); document.getElementById('modal').classList.remove('active'); render(); }
+
+function startTimer(s) {
+    stopTimer(); timerSeconds = s; updateTimerDisplay();
+    timerInterval = setInterval(() => { timerSeconds--; updateTimerDisplay(); if (timerSeconds <= 0) { stopTimer(); playBeep(); } }, 1000);
+}
+function skipTimer(d) { stopTimer(); timerSeconds = d; const el = document.getElementById('timerDisplay'); if (el) { el.textContent = d+'s'; el.className = 'timer-display'; } }
+function stopTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
+function updateTimerDisplay() {
+    const el = document.getElementById('timerDisplay');
+    if (!el) return;
+    if (timerSeconds <= 0) { el.textContent = '✓ Go !'; el.className = 'timer-display done-t'; }
+    else if (timerSeconds <= 5) { el.textContent = timerSeconds+'s'; el.className = 'timer-display warning'; }
+    else { el.textContent = timerSeconds+'s'; el.className = 'timer-display'; }
+}
+function playBeep() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        [0, 0.15, 0.3].forEach(d => {
+            const o = ctx.createOscillator(), g = ctx.createGain();
+            o.connect(g); g.connect(ctx.destination);
+            o.frequency.value = 880;
+            g.gain.setValueAtTime(0.3, ctx.currentTime + d);
+            g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + d + 0.12);
+            o.start(ctx.currentTime + d); o.stop(ctx.currentTime + d + 0.15);
+        });
+    } catch(e) {}
+}
+function selectFeeling(f) {
+    selectedFeeling = f;
+    document.querySelectorAll('.feeling-btn').forEach(btn => btn.classList.toggle('sel', btn.textContent.includes(f)));
+}
+function validateExercise() {
+    const { sessionId, exerciseId } = currentExercise;
+    const ex = EXERCISES[exerciseId];
+    const tracking = getTracking();
+    if (!tracking[sessionId]) tracking[sessionId] = {};
+    if (!tracking[sessionId].exercises) tracking[sessionId].exercises = {};
+    
+    const exerciseData = {
+        done: true,
+        weight: ex.hasWeight ? (document.getElementById('weightInput')?.value || null) : null,
+        reps: document.getElementById('repsInput')?.value || null,
+        sets: document.getElementById('setsInput')?.value || '3',
+        feeling: selectedFeeling,
+        timestamp: new Date().toISOString()
+    };
+    
+    tracking[sessionId].exercises[exerciseId] = exerciseData;
+    saveTracking(tracking);
+    
+    // Sync to Google Sheets
+    syncToSheets(sessionId, exerciseId, exerciseData);
+    
+    closeModal();
+}
+</script>
+</body>
+</html>
