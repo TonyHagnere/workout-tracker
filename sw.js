@@ -1,13 +1,14 @@
 const CACHE_NAME = 'workout-app-v1';
 const urlsToCache = [
-  '/workout-app.html',
-  '/manifest.json'
+  './',
+  './index.html'
 ];
 
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
+      .catch(err => console.log('Cache install failed:', err))
   );
 });
 
